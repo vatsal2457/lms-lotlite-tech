@@ -3,6 +3,7 @@ import { AppContext } from '../../context/AppContext';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import Loading from '../../components/student/Loading';
+import { assets } from '../../assets/assets';
 
 const MyCourses = () => {
 
@@ -11,19 +12,31 @@ const MyCourses = () => {
   const [courses, setCourses] = useState(null)
 
   const fetchEducatorCourses = async () => {
-
     try {
-
       const token = await getToken()
-
       const { data } = await axios.get(backendUrl + '/api/educator/courses', { headers: { Authorization: `Bearer ${token}` } })
-
       data.success && setCourses(data.courses)
-
     } catch (error) {
       toast.error(error.message)
     }
+  }
 
+  const handleDeleteCourse = async (courseId) => {
+    try {
+      const token = await getToken()
+      const { data } = await axios.delete(backendUrl + '/api/educator/course/' + courseId, 
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      
+      if (data.success) {
+        toast.success(data.message)
+        fetchEducatorCourses() // Refresh the courses list
+      } else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    }
   }
 
   useEffect(() => {
@@ -44,6 +57,7 @@ const MyCourses = () => {
                 <th className="px-4 py-3 font-semibold truncate">Earnings</th>
                 <th className="px-4 py-3 font-semibold truncate">Students</th>
                 <th className="px-4 py-3 font-semibold truncate">Published On</th>
+                <th className="px-4 py-3 font-semibold truncate">Actions</th>
               </tr>
             </thead>
             <tbody className="text-sm text-gray-500">
@@ -58,6 +72,14 @@ const MyCourses = () => {
                   <td className="px-4 py-3">
                     {new Date(course.createdAt).toLocaleDateString()}
                   </td>
+                  <td className="px-4 py-3">
+                    <button 
+                      onClick={() => handleDeleteCourse(course._id)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <img src={assets.cross_icon} alt="Delete" className="w-4 h-4" />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -65,7 +87,7 @@ const MyCourses = () => {
         </div>
       </div>
     </div>
-  ) : <Loading />
+  ) : <Loading />;
 };
 
 export default MyCourses;
