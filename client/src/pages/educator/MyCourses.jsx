@@ -23,19 +23,31 @@ const MyCourses = () => {
 
   const handleDeleteCourse = async (courseId) => {
     try {
+      console.log('Attempting to delete course:', courseId);
       const token = await getToken()
-      const { data } = await axios.delete(backendUrl + '/api/educator/course/' + courseId, 
+      console.log('Token retrieved:', token ? 'Yes' : 'No');
+      
+      const response = await axios.delete(backendUrl + '/api/educator/course/' + courseId, 
         { headers: { Authorization: `Bearer ${token}` } }
       )
       
-      if (data.success) {
-        toast.success(data.message)
+      console.log('Delete response:', response.data);
+      
+      if (response.data.success) {
+        toast.success(response.data.message)
         fetchEducatorCourses() // Refresh the courses list
       } else {
-        toast.error(data.message)
+        toast.error(response.data.message)
       }
     } catch (error) {
-      toast.error(error.message)
+      console.error('Error deleting course:', error);
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+        toast.error(error.response.data.message || 'Failed to delete course')
+      } else {
+        toast.error(error.message || 'Failed to delete course')
+      }
     }
   }
 
@@ -76,8 +88,9 @@ const MyCourses = () => {
                     <button 
                       onClick={() => handleDeleteCourse(course._id)}
                       className="text-red-500 hover:text-red-700"
+                      title="Unpublish Course"
                     >
-                      <img src={assets.cross_icon} alt="Delete" className="w-4 h-4" />
+                      <img src={assets.cross_icon} alt="Unpublish" className="w-4 h-4" />
                     </button>
                   </td>
                 </tr>
